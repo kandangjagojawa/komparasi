@@ -35,11 +35,12 @@
             display: flex; align-items: center; gap: 10px; font-weight: 600;
         }
 
-        /* Gradasi Latar Belakang (Dibuat pastel agar aksara hitam tetap terbaca jelas) */
+        /* Gradasi Latar Belakang */
         .grad-blue { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); }
         .grad-red { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
         .grad-green { background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%); }
         .grad-grey { background: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%); }
+        .grad-warning { background: linear-gradient(135deg, #fff3cd 0%, #ffe082 100%); border-left: 6px solid #ffb300; }
 
         /* Styling Panel */
         .panel {
@@ -47,9 +48,16 @@
             padding: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             display: flex; flex-direction: column;
+            margin-bottom: 20px;
         }
         .panel h2 { margin-top: 0; font-size: 1.2rem; text-align: center; color: #222; }
         
+        /* Area Informasi Penting */
+        .info-list { margin: 10px 0 0 0; padding-left: 20px; font-size: 0.95rem; line-height: 1.6; }
+        .info-list li { margin-bottom: 6px; }
+        .info-note { margin-top: 15px; font-style: italic; font-size: 0.9rem; color: #555; background: rgba(255,255,255,0.5); padding: 10px; border-radius: 6px; }
+        code { background: rgba(255,255,255,0.7); padding: 2px 5px; border-radius: 4px; font-weight: bold; }
+
         /* Area Input Latin */
         textarea#textInput {
             width: 100%;
@@ -65,7 +73,7 @@
         .output-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px; margin-top: 25px;
+            gap: 20px; margin-top: 5px;
         }
         
         .output-box {
@@ -83,9 +91,9 @@
     </style>
 </head>
 <body>
-    <h1>Aplikasi Membandingkan Tata Tulis Aksara Jawa</h1>
+    <h1>Membandingkan Tata Tulis Aksara Jawa</h1>
     
-    <!-- 1. Master Kontrol Slider -->
+    <!-- Master Kontrol Slider -->
     <div class="controls">
         <div class="control-group">
             <label>Ukuran Aksara:</label>
@@ -99,14 +107,28 @@
         </div>
     </div>
 
-    <!-- 2. Kotak Input Latin -->
+    <!-- Panel PENTING: Petunjuk Penulisan -->
+    <div class="panel grad-warning">
+        <h2 style="text-align: left; margin-bottom: 5px;">PENTING: Cara Penulisan Huruf Latin</h2>
+        <ul class="info-list">
+            <li><strong>E Pepet & E Taling:</strong> Gunakan <code>e</code> untuk bunyi pepet (misal: "segar"). Gunakan <code>é</code>, <code>è</code>, atau <code>e'</code> untuk bunyi taling (misal: "saté", "bèbèk").</li>
+            <li><strong>Panambang/Akhiran:</strong> Gunakan tanda hubung <code>-</code> (strip) sebelum akhiran untuk melihat cara penulisan kata berimbuhan yang benar (contoh: ketik <code>pangan-an</code>).</li>
+            <li><strong>Aksara Swara:</strong> Ketik huruf vokal Kapital murni (<code>A</code>, <code>I</code>, <code>U</code>, <code>E</code>, <code>O</code>).</li>
+            <li><strong>Aksara Murda:</strong> Ketik konsonan Kapital (N, K, T, S, P, G, B, J, NY).</li>
+            <li><strong>Aksara Rekan:</strong> Gunakan padanan konsonan <code>f</code>, <code>v</code>, <code>z</code>, <code>kh</code>, <code>dz</code>, atau <code>gh</code>.</li>
+        </ul>
+        <div class="info-note">
+            <strong>Catatan:</strong> Cara Kawi (Mardi Kawi) tidak mengenal Aksara Murda dan Aksara Rekan, maka akan muncul huruf Latin di transliterasi Cara Kawi.
+        </div>
+    </div>
+
+    <!-- Kotak Input Latin -->
     <div class="panel grad-blue">
-        <h2>Input Huruf Latin</h2>
-        <!-- ID textInput diikat langsung oleh carakawi.js. Kapital otomatis dinonaktifkan -->
+        <h2>Huruf Latin</h2>
         <textarea id="textInput" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="Ketik kalimat Latin di sini..."></textarea>
     </div>
 
-    <!-- 3. Kotak Hasil Transliterasi -->
+    <!-- Kotak Hasil Transliterasi -->
     <div class="output-container">
         <!-- Hasil KBJ -->
         <div class="panel grad-red">
@@ -123,12 +145,11 @@
         <!-- Hasil Cara Kawi -->
         <div class="panel grad-grey">
             <h2>Cara Kawi (Mardi Kawi)</h2>
-            <!-- ID previewOutput diikat langsung oleh carakawi.js untuk menampilkan hasilnya -->
             <div id="previewOutput" class="output-box font-carakawi" style="font-size:30px; line-height:1.5;"></div>
         </div>
     </div>
 
-    <!-- Elemen tersembunyi (Dummy) yang dipanggil oleh carakawi.js agar tidak error -->
+    <!-- Elemen tersembunyi (Dummy) untuk carakawi.js -->
     <div style="display:none;">
         <select id="fontSelect"></select>
         <span id="charCount"></span>
@@ -136,10 +157,8 @@
         <button id="clearBtn"></button>
     </div>
 
-    <!-- Logika Integrasi KBJ, Sriwedari, dan Slider -->
+    <!-- Integrasi KBJ, Sriwedari, dan Slider -->
     <script>
-        // A. Menyinkronkan slider manual ke panel KBJ & Sriwedari.
-        // (Panel Cara Kawi otomatis disesuaikan oleh internal carakawi.js sendiri)
         document.getElementById('fontSizeRange').addEventListener('input', (e) => {
             const size = e.target.value + 'px';
             document.getElementById('kbjOutput').style.fontSize = size;
@@ -152,13 +171,11 @@
             document.getElementById('sriwedariOutput').style.lineHeight = height;
         });
 
-        // B. Mengisolasi & memuat kbj.js dan sriwedari.js melalui Fetch
         let transKbj = null;
         let transSriwedari = null;
 
         async function initTransliteration() {
             try {
-                // Memanggil file skrip di direktori root GitHub Pages
                 const [kbjRes, sriRes] = await Promise.all([
                     fetch('kbj.js'),
                     fetch('sriwedari.js')
@@ -167,11 +184,9 @@
                 const kbjText = await kbjRes.text();
                 const sriText = await sriRes.text();
 
-                // Membungkus skrip dalam Function Sandbox agar konstanta global tidak saling menimpa
                 transKbj = new Function('teks', kbjText + '\nreturn transliterasiKalimat(teks);');
                 transSriwedari = new Function('teks', sriText + '\nreturn transliterasiKalimat(teks);');
 
-                // Jika saat reload ada teks tersisa, translasikan segera
                 updateKbjSriwedari();
             } catch (err) {
                 console.error("Gagal memuat file transliterasi:", err);
@@ -180,7 +195,6 @@
             }
         }
 
-        // C. Fungsi untuk merender ke kotak KBJ dan Sriwedari secara simultan
         function updateKbjSriwedari() {
             const teks = document.getElementById('textInput').value;
             if (transKbj) {
@@ -191,14 +205,11 @@
             }
         }
 
-        // Jalankan transliterasi KBJ dan Sriwedari setiap kali pengguna mengetik
         document.getElementById('textInput').addEventListener('input', updateKbjSriwedari);
-
-        // Mulai pemuatan isolasi saat halaman dibuka
         initTransliteration();
     </script>
     
-    <!-- Memuat carakawi.js (Akan langsung berjalan dan mengenali ID pada HTML ini) -->
+    <!-- Memuat carakawi.js -->
     <script src="carakawi.js"></script>
 </body>
 </html>
