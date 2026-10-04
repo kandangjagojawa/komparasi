@@ -27,7 +27,7 @@
         /* Panel Kontrol Slider */
         .controls {
             display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             background: #fff; padding: 15px 30px; border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
@@ -92,22 +92,8 @@
 </head>
 <body>
     <h1>Membandingkan Tata Tulis Aksara Jawa</h1>
-    
-    <!-- Master Kontrol Slider -->
-    <div class="controls">
-        <div class="control-group">
-            <label>Ukuran Aksara:</label>
-            <input type="range" id="fontSizeRange" min="20" max="70" value="30">
-            <span id="fontSizeVal">30</span>px
-        </div>
-        <div class="control-group">
-            <label>Spasi Vertikal:</label>
-            <input type="range" id="lineHeightRange" min="1" max="3" step="0.1" value="1.5">
-            <span id="lineHeightVal">1.5</span>
-        </div>
-    </div>
 
-    <!-- Panel PENTING: Petunjuk Penulisan -->
+    <!-- 1. Panel PENTING: Petunjuk Penulisan -->
     <div class="panel grad-warning">
         <h2 style="text-align: left; margin-bottom: 5px;">PENTING: Cara Penulisan Huruf Latin</h2>
         <ul class="info-list">
@@ -121,14 +107,28 @@
             <strong>Catatan:</strong> Cara Kawi (Mardi Kawi) tidak mengenal Aksara Murda dan Aksara Rekan, maka akan muncul huruf Latin di transliterasi Cara Kawi.
         </div>
     </div>
+    
+    <!-- 2. Master Kontrol Slider (Dipindahkan di bawah Panel Informasi Penting) -->
+    <div class="controls">
+        <div class="control-group">
+            <label>Ukuran Aksara:</label>
+            <input type="range" id="fontSizeRange" min="20" max="70" value="30">
+            <span id="fontSizeVal">30</span>px
+        </div>
+        <div class="control-group">
+            <label>Spasi Vertikal:</label>
+            <input type="range" id="lineHeightRange" min="1" max="3" step="0.1" value="1.5">
+            <span id="lineHeightVal">1.5</span>
+        </div>
+    </div>
 
-    <!-- Kotak Input Latin -->
+    <!-- 3. Kotak Input Latin -->
     <div class="panel grad-blue">
         <h2>Huruf Latin</h2>
         <textarea id="textInput" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="Ketik kalimat Latin di sini..."></textarea>
     </div>
 
-    <!-- Kotak Hasil Transliterasi -->
+    <!-- 4. Kotak Hasil Transliterasi -->
     <div class="output-container">
         <!-- Hasil KBJ -->
         <div class="panel grad-red">
