@@ -110,7 +110,7 @@ function prosesParamasastra() {
     }
 
     if (errorMsg !== "") {
-        document.getElementById('paramWarningArea').innerHTML = `<div class="param-warning">⚠️ WARNING PAUGERAN: ${errorMsg}</div>`;
+        document.getElementById('paramWarningArea').innerHTML = `<div class="param-warning">⚠ WARNING PAUGERAN: ${errorMsg}</div>`;
         document.getElementById('outParamLatin').value = "";
         document.getElementById('outParamJawa').innerHTML = "";
         return;
@@ -203,7 +203,6 @@ function prosesParamasastra() {
         if (!stemIsVowel) {
             let formattedStem = prefixAppended ? (prefixAppended + stem) : stem;
             if (panam === 'an_e') {
-                // FORMAT UNTUK KONSONAN MATI: OPÉN + AN + É -> OPÉN-ANNÉ
                 resultLatin = formattedStem + '-anné';
             } else {
                 let currentPanam = isTanggapI ? 'an' : panam;
@@ -263,7 +262,6 @@ function prosesParamasastra() {
                     suffixMod = 'kna';
                 }
             } else if (panam === 'an_e') {
-                // FORMAT UNTUK VOKAL TERBUKA: GABUNGAN -AN + -E
                 if (rootVowel === 'a') {
                     body = stem; suffixMod = 'nnanné'; 
                 } else if (rootVowel === 'i') {
@@ -483,14 +481,35 @@ function transliterasiKata(rawLatin) {
         return root + consonantToDouble + modSuffix;
     });
 
-    latinProcessed = latinProcessed.replace(/^(dak|tak|kok|ko|di)([aiueoéèê])/i, function(match, p1, p2) {
-        let p1Lower = p1.toLowerCase();
-        if (p1Lower === 'ko' || p1Lower === 'di') {
-            return p1 + 'hx' + p2;
-        } else {
-            return p1.slice(0, -1) + 'kxhx' + p2;
+    // PROTEKSI PENGECUALIAN SUPER-KOMPLEKS UNTUK KATA DASAR BERIMBUHAN
+    let wordMatchForExc = latinProcessed.match(/^([a-zA-ZéèêÉÈÊ]+)/);
+    let isPrefixException = false;
+    
+    if (wordMatchForExc) {
+        // List lengkap kata dasar kebal sandhi (yang berpotensi disalahpahami sbg ater-ater dak, tak, kok, ko, di, ka, ke)
+        const excBases = "takar|takam|taki|takik|takut|takur|takon|takong|dakar|dakah|daki|daku|dakon|koka|koki|kokun|koker|koko|kokok|kokoh|kokol|koas|koala|koali|koalisi|koin|koordin|koordinasi|koperasi|dian|diar|diare|dialog|diana|diaper|diastol|diat|diuretik|diet|dieng|diesel|dioda|diorama|dion|dioksida|kain|kaos|kaok|kaum|kail|kait|kais|kaing|keong|keok";
+        // List rakitan akhiran (termasuk an+e, dan efek perangkapan konsonan ganda)
+        const excSuffixes = "a|i|e|é|è|ê|en|an|ana|na|ake|aké|aken|ipun|anné|nné|nnanné";
+        
+        // Pola regex: mengecek [KATA DASAR] + [OPSIONAL 1 HURUF KEMBAR] + [OPSIONAL AKHIRAN]
+        const excPattern = new RegExp(`^(${excBases})([a-zA-Z]?(${excSuffixes}))?$`, 'i');
+        
+        if (excPattern.test(wordMatchForExc[1])) {
+            isPrefixException = true;
         }
-    });
+    }
+
+    // Aturan sandhi sisipan 'ha' HANYA dijalankan apabila KATA TERSEBUT BUKAN pengecualian
+    if (!isPrefixException) {
+        latinProcessed = latinProcessed.replace(/^(dak|tak|kok|ko|di|ka|ke)([aiueoéèê])/i, function(match, p1, p2) {
+            let p1Lower = p1.toLowerCase();
+            if (p1Lower === 'ko' || p1Lower === 'di' || p1Lower === 'ka' || p1Lower === 'ke') {
+                return p1 + 'hx' + p2;
+            } else {
+                return p1.slice(0, -1) + 'kxhx' + p2;
+            }
+        });
+    }
 
     let prevLatin = "";
     while (latinProcessed !== prevLatin) {

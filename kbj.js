@@ -206,7 +206,12 @@ function prosesParamasastra() {
         else stem = f + 'in' + dasar.slice(1);
         prefixAppended = '';
     } else if (ater !== '') {
-        prefixAppended = ater;
+        // Modifikasi cerdas untuk memaksa tanda hubung pada awalan generic yang bertemu vokal
+        if (isVowelStart && ['dak', 'tak', 'kok', 'ko', 'di', 'ka', 'ke'].includes(ater)) {
+            prefixAppended = ater + '-';
+        } else {
+            prefixAppended = ater;
+        }
     }
 
     let resultLatinMain = "";
@@ -397,22 +402,29 @@ function transliterasiSingleKata(rawLatin) {
         return abbr;
     }
 
-    if (/^dak[ry]/i.test(rawLatin)) {
-        let isY = /^daky/i.test(rawLatin);
-        let rest = rawLatin.substring(4); 
-        let prefixAksara = KAMUS_AKSARA['d'] + 'ꦏ꧀'; 
+    // Aturan cerdas untuk ater-ater dak-, tak-, kok- yang bertemu r/y agar menggunakan pangkon.
+    let prefixMatch = rawLatin.match(/^(dak|tak|kok)([ry])(.*)/i);
+    if (prefixMatch) {
+        let ater = prefixMatch[1].toLowerCase();
+        let cons = prefixMatch[2].toLowerCase();
+        let rest = prefixMatch[3];
         
-        if (isY) {
-            prefixAksara += KAMUS_AKSARA['y'];
-        } else {
+        let aterJawa = '';
+        if (ater === 'dak') aterJawa = 'ꦢꦏ꧀';
+        else if (ater === 'tak') aterJawa = 'ꦠꦏ꧀';
+        else if (ater === 'kok') aterJawa = 'ꦏꦺꦴꦏ꧀';
+
+        if (cons === 'y') {
+            aterJawa += 'ꦪ';
+        } else if (cons === 'r') {
             if (/^(e|ê)/i.test(rest)) {
-                prefixAksara += 'ꦉ'; 
+                aterJawa += 'ꦉ'; 
                 rest = rest.substring(1);
             } else {
-                prefixAksara += KAMUS_AKSARA['r']; 
+                aterJawa += 'ꦫ'; 
             }
         }
-        return prefixAksara + transliterasiSingleKata(rest);
+        return aterJawa + transliterasiSingleKata(rest);
     }
 
     let latinProcessed = rawLatin;
@@ -445,12 +457,15 @@ function transliterasiSingleKata(rawLatin) {
         return root + consonantToDouble + modSuffix;
     });
 
-    latinProcessed = latinProcessed.replace(/^(dak|tak|kok|ko|di)([aiueoéèê])/i, function(match, p1, p2) {
+    // ATURAN BARU YANG LEBIH CERDAS & AMAN:
+    // Hanya berlaku jika ater-ater digabungkan ke vokal menggunakan TANDA HUBUNG (misal: di-isi, dak-ombeni).
+    // Kata dasar seperti 'takon', 'koki', 'dian' akan diabaikan dan diproses normal.
+    latinProcessed = latinProcessed.replace(/^(dak|tak|kok|ko|di|ka|ke)-([aiueoéèê])/i, function(match, p1, p2) {
         let p1Lower = p1.toLowerCase();
-        if (p1Lower === 'ko' || p1Lower === 'di') {
-            return p1 + 'hx' + p2;
+        if (['dak', 'tak', 'kok'].includes(p1Lower)) {
+            return p1.slice(0, -1) + 'kxhx' + p2; // dak-isi menjadi dakxhxisi (ꦢꦏ꧀ꦲꦶꦱꦶ)
         } else {
-            return p1.slice(0, -1) + 'kxhx' + p2;
+            return p1 + 'hx' + p2; // di-isi menjadi dihxisi (ꦢꦶꦲꦶꦱꦶ)
         }
     });
 
@@ -565,7 +580,6 @@ function transliterasiSingleKata(rawLatin) {
             else if (c === 'h' && !isFirstAksara && canTakeSandhangan) res += 'ꦃ'; 
             else if (c !== "") {
                 let useMurda = isMurda && false;
-                // Bila 'dh' dalam posisi dipangku
                 let base = (c === 'dh' && res.endsWith('꧀')) ? AKSARA_MURDA['dh'] : (useMurda ? AKSARA_MURDA[c] : KAMUS_AKSARA[c]);
                 res += base + '꧀'; 
             }
@@ -586,7 +600,6 @@ function transliterasiSingleKata(rawLatin) {
             let isAttachedAsPasangan = res.endsWith('꧀');
             let useMurda = isMurda && !isAttachedAsPasangan;
 
-            // Bila 'dh' menjadi Pasangan di bawah aksara lain (diakhiri pangkon ꧀), gunakan Pasangan Da Murda (ꦝ)
             let base = isSwara ? SWARA_MAP[c] : ((c === 'dh' && isAttachedAsPasangan) ? AKSARA_MURDA['dh'] : (useMurda ? AKSARA_MURDA[c] : KAMUS_AKSARA[c]));
             res += base;
 
