@@ -194,7 +194,7 @@ function prosesParamasastra() {
     }
 
     if (errorMsg !== "") {
-        document.getElementById('paramWarningArea').innerHTML = `<div class="param-warning">⚠️️ WARNING PAUGERAN: ${errorMsg}</div>`;
+        document.getElementById('paramWarningArea').innerHTML = `<div class="param-warning">⚠ WARNING PAUGERAN: ${errorMsg}</div>`;
         document.getElementById('outParamLatin').value = "";
         document.getElementById('outParamJawa').innerHTML = "";
         return;
@@ -655,7 +655,7 @@ function transliterasiKata(rawLatin) {
         let isSwara = false;
         let isMurda = false;
 
-        let c3_raw = i+2 < latin.length ? substring(latin, i, i+3) : "";
+        let c3_raw = i+2 < latin.length ? latin.substring(i, i+3) : ""; // <-- KOREKSI DI SINI
         let c2_raw = i+1 < latin.length ? latin.substring(i, i+2) : "";
         let c1_raw = latin[i];
 
