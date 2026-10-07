@@ -206,7 +206,6 @@ function prosesParamasastra() {
         else stem = f + 'in' + dasar.slice(1);
         prefixAppended = '';
     } else if (ater !== '') {
-        // Modifikasi cerdas untuk memaksa tanda hubung pada awalan generic yang bertemu vokal
         if (isVowelStart && ['dak', 'tak', 'kok', 'ko', 'di', 'ka', 'ke'].includes(ater)) {
             prefixAppended = ater + '-';
         } else {
@@ -249,7 +248,8 @@ function prosesParamasastra() {
                 const explicitHaWords = ['priyé', 'priyayi', 'tawu', 'suwowo'];
                 if (explicitHaWords.includes(pStem)) { body = pStem; suffixMod = 'ha'; }
                 else {
-                    if (rootVowel === 'i' || rootVowel === 'é' || rootVowel === 'è') { body = pStem; suffixMod = 'ya'; }
+                    if (rootVowel === 'i') { body = pStem; suffixMod = 'ya'; }
+                    else if (['e','é','è'].includes(rootVowel)) { body = pStem; suffixMod = 'a'; }
                     else if (rootVowel === 'u' || rootVowel === 'o') { body = pStem; suffixMod = 'wa'; }
                     else { body = pStem; suffixMod = 'a'; }
                 }
@@ -259,16 +259,22 @@ function prosesParamasastra() {
                 else if (rootVowel === 'u') body = pStem.slice(0, -1) + 'o';
                 suffixMod = 'kna';
             } else if (panam === 'an_e') {
-                if (rootVowel === 'a') body = pStem;
-                else if (rootVowel === 'i') body = pStem.slice(0, -1) + 'è';
-                else if (rootVowel === 'u') body = pStem.slice(0, -1) + 'o';
-                suffixMod = 'nnanné';
+                if (['e','é','è'].includes(rootVowel)) {
+                    body = pStem;
+                    suffixMod = 'anné';
+                } else {
+                    if (rootVowel === 'a') body = pStem;
+                    else if (rootVowel === 'i') body = pStem.slice(0, -1) + 'è';
+                    else if (rootVowel === 'u') body = pStem.slice(0, -1) + 'o';
+                    suffixMod = 'nnanné';
+                }
             } else {
                 if (panam === 'an') {
                     if (pStem === 'uji') { body = pStem; suffixMod = 'an'; }
                     else if (rootVowel === 'a') { body = pStem; suffixMod = 'n'; }
                     else if (rootVowel === 'i') { body = pStem.slice(0, -1) + 'è'; suffixMod = 'n'; }
                     else if (rootVowel === 'u') { body = pStem.slice(0, -1) + 'o'; suffixMod = 'n'; }
+                    else if (['e','é','è'].includes(rootVowel)) { body = pStem; suffixMod = 'an'; }
                     else { body = pStem; suffixMod = 'nan'; }
                 } else if (rootVowel === 'a') {
                     if(['ake', 'aké'].includes(panam)) suffixMod = 'kake';
@@ -297,6 +303,14 @@ function prosesParamasastra() {
                         if(panam==='aken') suffixMod='kaken';
                         if(panam==='en') suffixMod='nen';
                     } else suffixMod = panam;
+                } else if (['e','é','è'].includes(rootVowel)) {
+                    body = pStem;
+                    if(['ake', 'aké'].includes(panam)) suffixMod = 'kake';
+                    else if(panam === 'aken') suffixMod = 'kaken';
+                    else if(panam === 'en') suffixMod = 'nen';
+                    else if(['e', 'é'].includes(panam)) suffixMod = 'ne';
+                    else if(panam === 'ipun') suffixMod = 'nipun';
+                    else suffixMod = panam;
                 } else {
                     suffixMod = panam;
                 }
