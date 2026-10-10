@@ -54,6 +54,3 @@ Negara Indonesia
 ### 📄 Lisensi
 
 MIT License. Bebas dipakai untuk edukasi & pelestarian budaya.
-
----
-**Monggo uri-uri Aksara Jawa!** Kasih ⭐ kalau membantu.
