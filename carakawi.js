@@ -2,6 +2,7 @@
  * CARAKAWI.JS
  * Transliterasi Aksara Jawa Cara Kawi (Mardi Kawi)
  * Penyesuaian aturan r mati di tengah kata: tidak merangkap konsonan ha, nga, nya.
+ * Penyesuaian r mati + ya: Aksara ra diberi pasangan untuk membentuk Repha (ꦫ꧀) dan ya didobel menggunakan pengkal (ꦪꦾ).
  */
 
 const textInput = document.getElementById('textInput');
@@ -15,7 +16,6 @@ const charCount = document.getElementById('charCount');
 const copyBtn = document.getElementById('copyBtn');
 const clearBtn = document.getElementById('clearBtn');
 
-// Map Konsonan Mardi Kawi dengan Murda/Ra Agung sesuai kaidah Sriwedari (N, K, T, S, P, G, B, J, NY, R -> Ra Agung 'ꦬ')
 const CONS_MAP = {
     'th': 'ꦛ', 'dh': 'ꦝ', 'ny': 'ꦚ', 'ng': 'ꦔ',
     'TH': 'ꦜ', 'DH': 'ꦞ', 'NY': 'ꦘ', 'Ny': 'ꦘ', 'NG': 'ꦔ',
@@ -33,7 +33,7 @@ const CONS_MAP = {
 
 function getWarga(char) {
     if (['ꦕ','ꦖ','ꦗ','ꦙ','ꦚ','ꦯ','ꦪ'].includes(char)) return 'talawya';
-    if (['ꦛ','ꦜ','ꦝ','ꦞ','ꦟ','ꦰ','ꦬ'].includes(char)) return 'murdhanya';
+    if (['ꦛ','ꦜ','ꦝ','ꦞ','ꦟ','ꦰ','ꦬ','ꦫ'].includes(char)) return 'murdhanya';
     if (['ꦠ','ꦡ','ꦢ','ꦣ','ꦤ','ꦱ','ꦭ'].includes(char)) return 'dantya';
     if (['ꦏ','ꦑ','ꦒ','ꦓ','ꦔ','ꦲ'].includes(char)) return 'kanthya';
     if (['ꦥ','ꦦ','ꦧ','ꦨ','ꦩ','ꦮ'].includes(char)) return 'osthya';
@@ -147,6 +147,24 @@ function transliterateKawi(rawText) {
     if (!rawText) return '';
     
     rawText = processMacros(rawText);
+
+    rawText = rawText
+        .replace(/\|\|/g, '\uA9CB')
+        .replace(/\|/g, '\uA9CA')
+        .replace(/\(\(/g, '\uA9C1')         .replace(/\)\)/g, '\uA9C2')
+        .replace(/<_/g, '\uA9C3')
+        .replace(/<>/g, '\uA9C4')
+        .replace(/>\^/g, '\uA9C5')
+        .replace(/\(o\)/g, '\uA9C6')
+        .replace(/:=/g, '\uA9C7')
+        .replace(/\[\\/g, '\uA9CC')         .replace(/\\\]/g, '\uA9CD')
+        .replace(/\^2/g, '\uA9CE')
+        .replace(/_2/g, '\uA9CF')
+        .replace(/~~/g, '\uA9DE')
+        .replace(/##/g, '\uA9DF')
+        .replace(/\^3/g, '\uA980')
+        .replace(/\+3/g, '\uA9B3');
+
     let tokens = tokenize(rawText);
     let result = '';
 
@@ -301,7 +319,9 @@ function transliterateKawi(rawText) {
                 if (cons.key === 'r') rSeenInWord = true;
 
                 let handledWyanjana = false;
-                if (nextIdx < word.length) {
+
+                // Aksara Ra tidak boleh diberi pasangan/sandhangan wyanjana (pengkal/cakra/cakra keret/nga lelet)
+                if (cons.key !== 'r' && nextIdx < word.length) {
                     let nextConsTemp2 = matchConsonant(word, nextIdx);
 
                     if (nextConsTemp2 && nextConsTemp2.key === 'r') {
@@ -430,9 +450,10 @@ function transliterateKawi(rawText) {
                     continue;
                 }
 
-                // --- PENANGANAN KONSONAN R MATI DI TENGAH KATA ---
+                // --- PENANGANAN KONSONAN R MATI DI TENGAH KATA (KHUSUS KAWI/REPHA) ---
                 if (cons.key === 'r') {
                     if (!isWordEnd) {
+                        // Menggunakan r diberi pasangan (ꦫ꧀) dengan struktur penyambungan asli
                         result += consChar + '꧀';
                         let nextConsTemp = matchConsonant(word, peekIdx);
 
@@ -472,7 +493,13 @@ function transliterateKawi(rawText) {
                             if (v2Match) {
                                 let v2 = v2Match.val;
                                 if (doubleIt) {
-                                    result += consChar2_1 + '꧀' + consChar2_2 + getSandhanganVowel(v2);
+                                    if (nextConsTemp.key === 'y') {
+                                        // Khusus ya yang didobel: gunakan pengkal sebagai pasangannya
+                                        result += consChar2_1 + 'ꦾ' + getSandhanganVowel(v2);
+                                    } else {
+                                        // Konsonan selain ya
+                                        result += consChar2_1 + '꧀' + consChar2_2 + getSandhanganVowel(v2);
+                                    }
                                 } else {
                                     result += consChar2_1 + getSandhanganVowel(v2);
                                 }
@@ -480,7 +507,11 @@ function transliterateKawi(rawText) {
                                 lastConsIsMati = false;
                             } else {
                                 if (doubleIt) {
-                                    result += consChar2_1 + '꧀' + consChar2_2 + '꧀';
+                                    if (nextConsTemp.key === 'y') {
+                                        result += consChar2_1 + 'ꦾ꧀';
+                                    } else {
+                                        result += consChar2_1 + '꧀' + consChar2_2 + '꧀';
+                                    }
                                 } else {
                                     result += consChar2_1 + '꧀';
                                 }
@@ -501,7 +532,7 @@ function transliterateKawi(rawText) {
                             nextWordToken.val = nextWordToken.val.substr(crossVowel.len);
                             lastConsIsMati = false;
                         } else {
-                            result += 'ꦫ꧀';
+                            result += 'ꦫ꧀'; // Kawi di akhir kata tetap menggunakan Pangkon (ꦫ꧀)
                             lastConsIsMati = true;
                         }
                         i = nextIdx;
